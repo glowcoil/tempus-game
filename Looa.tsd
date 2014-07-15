@@ -1,0 +1,76 @@
+#tileset
+
+#tilebitmap tiles\\<TileSetIdentifier>.png 512
+#end tilebitmap
+
+#file tiles\\<TileSetIdentifier>.lua
+local quads = {}
+for i = 1, <TileCount> do
+  quads[i] = love.graphics.newQuad(
+    (i - 1) % <HorizontalTileCount> * <TileWidth>,
+    math.floor((i - 1) / <HorizontalTileCount>) * <TileHeight>,
+    <TileWidth>, <TileHeight>,
+    <TileSetBitmapWidth>, <TileSetBitmapHeight>
+  )
+end
+
+return \"tiles/<TileSetIdentifier>.png\", quads
+#end file
+
+#map
+
+#file maps\\<MapIdentifier>.lua
+require "map"
+
+local image, quads = love.filesystem.load(\"tiles/<TileSetIdentifier>.lua\")()
+
+local tiles =
+#mapdata " {\n  [0]={\n    " "," ",\n    " " },\n  {\n    " "\n  }\n}"
+[<X>]=quads[<TileNumber>]
+#end mapdata
+
+local bounds =
+#mapdata " {\n  [0]={\n    " "," ",\n    " " },\n  {\n    " "\n  }\n}"
+[<X>]=<Bounds>
+#end mapdata
+
+local codes =
+#mapdata " {\n  [0]={\n    " "," ",\n    " " },\n  {\n    " "\n  }\n}"
+[<X>]=\"<MapCode:\"%02x\">\"
+#end mapdata
+
+local sequences = {
+  image = image,
+#sequence ","
+  [<SequenceNumber>] =
+#sequencedata " { " "," " }"
+[<Frame>]=quads[<TileNumber>]
+#end sequencedata
+#end sequence
+}
+
+local tileWidth = <TileWidth>
+local tileHeight = <TileHeight>
+local mapWidth = <MapWidth>
+local mapHeight = <MapHeight>
+
+if \"<MapIdentifier>\" ~= \"<TileSetIdentifier>\" then
+  return map(image, tileWidth, tileHeight, mapWidth, mapHeight, tiles, bounds, codes)
+else
+  return sequences
+end
+#end file
+
+#end map
+
+#end tileset
+
+#file maps.lua
+maps = {}
+
+#tileset
+#map
+maps.<MapIdentifier> = function() return love.filesystem.load(\"maps/<MapIdentifier>.lua\")() end
+#end map
+#end tileset
+#end file
